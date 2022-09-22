@@ -276,7 +276,7 @@ function init() {
 function play() {  
     PLAYER1.hands.forEach(function(hand) {
         hand.turn = 1;
-        while (hand.turn) {
+        // while (hand.turn) {
 
         buttonEl.addEventListener('click', handleClick);
         function handleClick(evt) {
@@ -301,7 +301,7 @@ function play() {
             }
         }
 
-        }
+        // }
 
     });
 }
