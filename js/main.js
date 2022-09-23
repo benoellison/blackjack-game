@@ -102,6 +102,7 @@ class Hand {
         if (!this.checkFor21() && !this.checkForBust()) {
             this.cards.push(deck.pop());
             console.log('Hand hit.');
+            render();
             return true;
         }
         else {
@@ -119,15 +120,17 @@ class Hand {
             this.turn = 0;
             console.log('Doubled down.');
         }
+        render();
     }
     surrender = function() {
         this.bet *= 0.5;
         this.turn = 0;
         console.log('Hand surrendered.');
+        render();
     }
 }
 
-let usedCards = []
+let usedCards = [];
 
 class Player {
     constructor(name, money) {
@@ -231,6 +234,9 @@ function placeBet(amount) {
 const dealerEl = document.getElementById('dealer');
 const playerEl = document.getElementById('player');
 
+const messageEl = document.getElementById('message');
+// const currentBetEl = document.getElementById('current-bet');
+
 const betButtonEl = document.getElementById('bet');
 const betAmountEl = document.getElementById('bet-amount');
 betButtonEl.addEventListener('click', handleBetClick);
@@ -275,10 +281,9 @@ function init() {
     console.log('Dealer and player added.');
 }
 function play() {  
+    PLAYER1.turn = 1;
     PLAYER1.hands.forEach(function(hand) {
         hand.turn = 1;
-        // while (hand.turn) {
-
         buttonEl.addEventListener('click', handleClick);
         function handleClick(evt) {
             let buttonClicked = evt.target;
@@ -286,6 +291,8 @@ function play() {
             switch(buttonClicked.id) {
                 case 'hit':
                     hand.hit();
+                    hand.checkFor21();
+                    hand.checkForBust();
                     render();
                     break;
                 case 'stand':
@@ -294,6 +301,8 @@ function play() {
                     break;
                 case 'double-down':
                     hand.doubleDown();
+                    hand.checkFor21();
+                    hand.checkForBust();
                     render();
                     break;
                 case 'split':
@@ -305,11 +314,13 @@ function play() {
                     render();
                     break;
             }
+            if (hand.turn === 0) buttonEl.removeEventListener('click', handleClick);
         }
-
-        // }
-
     });
+    if (PLAYER1.turn === 0) {
+        dealerPlay();
+        DEALER.turn = 0;
+    }
 }
 
 function split(hand) {
@@ -335,6 +346,9 @@ function render() {
             newCard.classList.add('card', card.face)
             playerEl.appendChild(newCard);
         })
+        let showValue = document.createElement('p');
+        showValue.textContent = hand.value;
+        playerEl.appendChild(showValue);
     })
     DEALER.hands.forEach(function(hand) {
         hand.cards.forEach(function(card) {
@@ -342,6 +356,9 @@ function render() {
             newCard.classList.add('card', card.face)
             dealerEl.appendChild(newCard);
         })
+        let showValue = document.createElement('p');
+        showValue.textContent = hand.value;
+        dealerEl.appendChild(showValue);
     })
 }
 
@@ -358,3 +375,17 @@ function clearTable() {
 }
 
 init();
+function dealerPlay() {
+    let hand = DEALER.hands[0];
+    while (hand.value <= 17) {
+        hand.hit();
+        render();
+    }
+    hand.turn = 0;
+    DEALER.turn = 0;
+}
+// dealerPlay();
+// PLAYER1.hands.forEach(function(hand) {
+//     checkWin(hand);
+// });
+// payOut(PLAYER1);
