@@ -144,6 +144,7 @@ const PLAYER1 = new Player('Player 1', 1000000);
 function deal(player, bet) {
     let newHand = new Hand(bet, deck.pop(), deck.pop());
     player.hands.push(newHand);
+    render();
     console.log('Cards dealt.');
 }
 
@@ -285,18 +286,23 @@ function play() {
             switch(buttonClicked.id) {
                 case 'hit':
                     hand.hit();
+                    render();
                     break;
                 case 'stand':
                     hand.stand();
+                    render();
                     break;
                 case 'double-down':
                     hand.doubleDown();
+                    render();
                     break;
                 case 'split':
                     split(hand);
+                    render();
                     break;
                 case 'surrender':
                     hand.surrender();
+                    render();
                     break;
             }
         }
@@ -321,8 +327,22 @@ function checkDeck() {
 }
 
 function render() {
-    dealerEl.innerText = dealer.cards;
-    playerEl.innerText = player.cards;
+    playerEl.innerHTML = '';
+    dealerEl.innerHTML = '';
+    PLAYER1.hands.forEach(function(hand) {
+        hand.cards.forEach(function(card) {
+            let newCard = document.createElement('div');
+            newCard.classList.add('card', card.face)
+            playerEl.appendChild(newCard);
+        })
+    })
+    DEALER.hands.forEach(function(hand) {
+        hand.cards.forEach(function(card) {
+            let newCard = document.createElement('div');
+            newCard.classList.add('card', card.face)
+            dealerEl.appendChild(newCard);
+        })
+    })
 }
 
 function clearTable() {
