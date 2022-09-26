@@ -1,5 +1,7 @@
 body {
     background-color: #17c033;
+    color: white;
+    text-shadow: 2px 2px black;
 }
 .hand {
     background-color: #1fe23f;

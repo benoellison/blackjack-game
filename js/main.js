@@ -1,5 +1,7 @@
 let deck = [];
+let usedCards = [];
 
+// Classes
 class Card {
     constructor(face) {
         this.face = face;
@@ -14,25 +16,6 @@ class Card {
         else return 10;
     }
 }
-
-//  Populate deck with Cards
-const suits = ['s', 'h', 'd', 'c']
-const ranks = ['02', '03', '04', '05', '06', '07', '08', '09', '10', 'J', 'Q', 'K', 'A']
-function buildDeck() {
-    ranks.forEach(function(suit) {
-        suits.forEach(function(rank) {
-            deck.push(new Card(rank + suit));
-        })
-    })
-    console.log('Deck built.');
-}
-
-//  Randomize (shuffle) cards in deck
-function shuffle() {
-    deck.sort(() => Math.random() - 0.5);
-    console.log('Deck shuffled.');
-}
-
 class Hand {
     constructor(bet, card1, card2) {
         this.bet = bet;
@@ -56,16 +39,6 @@ class Hand {
         });
         return total;
     }
-    // bustOr21 = function() {
-    //     if (this.value == 21) {
-    //         this.turn = 0;
-    //         return 21;
-    //     }
-    //     if (this.value > 21) {
-    //         this.turn = 0;
-    //         return 'bust';
-    //     }
-    // }
     checkFor21 = function() {
         if (this.value == 21) {
             this.turn = 0;
@@ -129,9 +102,6 @@ class Hand {
         render();
     }
 }
-
-let usedCards = [];
-
 class Player {
     constructor(name, money) {
         this.name = name;
@@ -140,44 +110,48 @@ class Player {
         this.hands = [];
     }
 }
+
+// DOM Elements
+const dealerEl = document.getElementById('dealer');
+const playerEl = document.getElementById('player');
+const messageEl = document.getElementById('message');
+// const currentBetEl = document.getElementById('current-bet');
+const betButtonEl = document.getElementById('bet');
+const betAmountEl = document.getElementById('bet-amount');
+const buttonEl = document.getElementById('buttons');
+
+
 let playerList = [];
 const DEALER = new Player('Dealer', 1000000000);
 const PLAYER1 = new Player('Player 1', 1000000);
+
+//  Populate deck with Cards
+const suits = ['s', 'h', 'd', 'c']
+const ranks = ['02', '03', '04', '05', '06', '07', '08', '09', '10', 'J', 'Q', 'K', 'A']
+function buildDeck() {
+    ranks.forEach(function(suit) {
+        suits.forEach(function(rank) {
+            deck.push(new Card(rank + suit));
+        })
+    })
+    console.log('Deck built.');
+}
+
+//  Randomize (shuffle) cards in deck
+function shuffle() {
+    deck.sort(() => Math.random() - 0.5);
+    renderMessage('Deck shuffled');
+    console.log('Deck shuffled.');
+}
 
 function deal(player, bet) {
     let newHand = new Hand(bet, deck.pop(), deck.pop());
     player.hands.push(newHand);
     render();
+    renderMessage('Cards dealt');
     console.log('Cards dealt.');
 }
 
-// function checkWin(playerHand, dealerHand) {
-//     if (playerHand.checkForBlackjack() && dealerHand.checkForBlackjack()) {
-//         playerHand.win = null;
-//         dealerHand.win = null;
-//     }
-//     else if (playerHand.checkForBlackjack() && !dealerHand.checkForBlackjack()) {
-//         playerHand.win = 1;
-//         dealerHand.win = 0;
-//     }
-//     else if (!playerHand.checkForBlackjack() && dealerHand.checkForBlackjack()) {
-//         playerHand.win = 0;
-//         dealerHand.win = 1;
-//     }
-
-//     if (playerHand.value > dealerHand.value) {
-//         playerHand.win = 1;
-//         dealerHand.win = 0;
-//     }
-//     if (playerHand.value === dealerHand.value) {
-//         playerHand.win = null;
-//         dealerHand.win = null;
-//     }
-//     else {
-//         playerHand.win = 0;
-//         dealerHand.win = 1;
-//     }
-// }
 function checkWin(playerHand) {
     if (playerHand.checkForBlackjack() && DEALER.hands[0].checkForBlackjack()) {
         playerHand.win = null;
@@ -231,14 +205,9 @@ function placeBet(amount) {
     deal(DEALER, 0);
     play();
 }
-const dealerEl = document.getElementById('dealer');
-const playerEl = document.getElementById('player');
 
-const messageEl = document.getElementById('message');
-// const currentBetEl = document.getElementById('current-bet');
 
-const betButtonEl = document.getElementById('bet');
-const betAmountEl = document.getElementById('bet-amount');
+
 betButtonEl.addEventListener('click', handleBetClick);
 function handleBetClick(evt) {
     // let buttonClicked = evt.target;
@@ -248,31 +217,7 @@ function handleBetClick(evt) {
     }
 }
 
-const buttonEl = document.getElementById('buttons');
-// buttonEl.addEventListener('click', handleClick);
-// function handleClick(evt) {
-//     let buttonClicked = evt.target;
-//     console.log(buttonClicked);
-//     if (!PLAYER1.hands[0]) {
-//         if (buttonClicked.id === 'bet') {
-//             placeBet(betAmountEl.value);
-//         }
-//     }
-//     else {
-//         switch(buttonClicked.id) {
-//             case 'hit':
-//                 break;
-//             case 'stand':
-//                 break;
-//             case 'double-down':
-//                 break;
-//             case 'split':
-//                 break;
-//             case 'surrender':
-//                 break;
-//         }
-//     }
-// }
+
 function init() {
     console.log('New game started.');
     buildDeck();
@@ -360,6 +305,28 @@ function render() {
         showValue.textContent = hand.value;
         dealerEl.appendChild(showValue);
     })
+}
+function renderPlayer() {
+    playerEl.innerHTML = '';
+    PLAYER1.hands.forEach(function(hand) {
+        hand.cards.forEach(function(card) {
+            let newCard = document.createElement('div');
+            newCard.classList.add('card', card.face)
+            playerEl.appendChild(newCard);
+        })
+        let showValue = document.createElement('p');
+        showValue.textContent = hand.value;
+        playerEl.appendChild(showValue);
+    })
+}
+function renderDealer() {
+    dealerEl.innerHTML = '';
+    if (DEALER.turn === 0) {
+
+    }
+}
+function renderMessage(message) {
+    messageEl.textContent = message;
 }
 
 function clearTable() {
