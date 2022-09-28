@@ -21,8 +21,9 @@ let player = {
     hand: [],
     bet: null,
     money: 1000000,
-    turn: null
-    
+    turn: null,
+    win: null
+
 }
 let dealer = {
     hand: []
@@ -37,14 +38,16 @@ function buildDeck() {
             deck.push(new Card(rank + suit));
         })
     })
-    console.log('Deck built.');
 }
 
 //  Randomize (shuffle) cards in deck
 function shuffle() {
     deck.sort(() => Math.random() - 0.5);
-    // renderMessage('Deck shuffled');
     console.log('Deck shuffled.');
+}
+function renderMessage() {
+    if (getHandValue(player.hand) > 21) messageEl.innerText = 'PLAYER BUSTS'
+    if (getHandValue(dealer.hand) > 21) messageEl.innerText = 'DEALER BUSTS'
 }
 
 // DOM Elements
@@ -52,25 +55,40 @@ const dealerEl = document.getElementById('dealer');
 const playerEl = document.getElementById('player');
 const buttonEl = document.getElementById('buttons');
 const betAmountEl = document.getElementById('bet-amount');
+const messageEl = document.getElementById('message');
 
-buttonEl.addEventListener('click', handleClick());
+buttonEl.addEventListener('click', handleClick);
 function handleClick(evt) {
     let buttonClicked = evt.target;
     // if (!bet)
-    if (player.turn === 1) {
+    // if (player.turn === 1) {
         switch(buttonClicked.id) {
             case 'bet':
-                if (player.bet === null && !betAmountEl.value) {
-                    player.bet = betAmountEl.value;
+                if (player.bet === null) {
+                    player.bet = ~~betAmountEl.value;
+                    player.money -= ~~betAmountEl.value;
                 }
                 break;
             case 'hit':
+                if (player.turn === 0) break;
                 hit(player.hand);
+                if (getHandValue(player.hand) >= 21) player.turn = 0;
+                render();
                 break;
             case 'stand':
                 player.turn = 0;
+                dealerPlay();
+                render();
+                break;
+            case 'double-down':
+                if (player.turn === 0) break;
+                hit(player.hand);
+                player.turn = 0;
+                if (getHandValue(player.hand) <= 21) dealerPlay();
+                render();
+                break;
         }
-    }
+    // }
 }
 function playerTurnEnd() {
     if (getHandValue(player.hand) < 21) return 0;
@@ -83,12 +101,18 @@ function playerTurnEnd() {
         return 'BUST';
     }
 }
+function dealerPlay() {
+    while (getHandValue(dealer.hand) < 17) {
+        hit(dealer.hand);
+    }
+}
 function dealerTurnEnd() {
     if (getHandValue(dealer.hand) < 17) return 0;
     else return 1;
 }
 function checkWin() {
-    
+    if (getHandValue(player.hand) > getHandValue(dealer.hand)) player.win = 1;
+    else if (getHandValue(player.hand) < getHandValue(dealer.hand)) player.win = 0;
 }
 function renderPlayerHand() {
     playerEl.innerHTML = '';
@@ -106,6 +130,11 @@ function renderDealerHand() {
         dealerEl.appendChild(newCard);
     });
 }
+function render() {
+    renderPlayerHand();
+    renderDealerHand();
+    renderMessage();
+}
 function getHandValue(hand) {
     let total = 0;
     hand.forEach(function(card) {
@@ -117,6 +146,7 @@ function getHandValue(hand) {
             else total++;
         }
     });
+    return total;
 }
 function deal() {
     player.hand.push(deck.pop(), deck.pop());
@@ -127,5 +157,11 @@ function hit(hand) {
 }
 
 function init() {
-
+    buildDeck();
+    shuffle();
+    deal();
+    render();
+    player.turn = 1;
 }
+
+init();
