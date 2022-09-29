@@ -72,7 +72,10 @@ function handleClick(evt) {
             case 'hit':
                 if (player.turn === 0) break;
                 hit(player.hand);
-                if (getHandValue(player.hand) >= 21) player.turn = 0;
+                if (getHandValue(player.hand) >= 21) {
+                    player.turn = 0;
+                    payOut();
+                }
                 render();
                 break;
             case 'stand':
@@ -85,10 +88,16 @@ function handleClick(evt) {
                 hit(player.hand);
                 player.turn = 0;
                 if (getHandValue(player.hand) <= 21) dealerPlay();
+                else player.win = 0;
                 render();
+                payOut();
                 break;
         }
     // }
+}
+function payOut() {
+    if (player.win === 1) player.money += bet*2;
+    player.bet = null;
 }
 function playerTurnEnd() {
     if (getHandValue(player.hand) < 21) return 0;
@@ -105,14 +114,26 @@ function dealerPlay() {
     while (getHandValue(dealer.hand) < 17) {
         hit(dealer.hand);
     }
+    if (getHandValue(dealer.hand) > 21) {
+        player.win = 1;
+    }
+    else checkWin();
+    payOut();
 }
 function dealerTurnEnd() {
     if (getHandValue(dealer.hand) < 17) return 0;
     else return 1;
 }
 function checkWin() {
-    if (getHandValue(player.hand) > getHandValue(dealer.hand)) player.win = 1;
-    else if (getHandValue(player.hand) < getHandValue(dealer.hand)) player.win = 0;
+    if (getHandValue(player.hand) > getHandValue(dealer.hand)) {
+        player.win = 1; 
+        messageEl.innerText = 'PLAYER WINS'
+    }
+    else if (getHandValue(player.hand) < getHandValue(dealer.hand)) {
+        player.win = 0;
+        messageEl.innerText = 'DEALER WINS'
+    }
+    else messageEl.innerText = 'PUSH'
 }
 function renderPlayerHand() {
     playerEl.innerHTML = '';
@@ -124,11 +145,21 @@ function renderPlayerHand() {
 }
 function renderDealerHand() {
     dealerEl.innerHTML = '';
-    dealer.hand.forEach(function(card) {
+    if (player.turn != 0) {
+        let faceDownCard = document.createElement('div');
+        let faceUpCard = document.createElement('div');
+        faceDownCard.classList.add('card', 'back-blue')
+        faceUpCard.classList.add('card', dealer.hand[1].face)
+        dealerEl.appendChild(faceDownCard);
+        dealerEl.appendChild(faceUpCard);
+    }
+    else {
+        dealer.hand.forEach(function(card) {
         let newCard = document.createElement('div');
         newCard.classList.add('card', card.face)
         dealerEl.appendChild(newCard);
-    });
+        }); 
+    }
 }
 function render() {
     renderPlayerHand();
